@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="./css/bootstrap4/bootstrap4.css" />
+
+    <!-- font awesome CSS -->
+    <link rel="stylesheet" type="text/css" href="css/fontawesome/fontawesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/fontawesome/fontawesome.min.css">
+
+    <!-- Jquery -->
+    <script src="./js/jquery/jquery-3.2.1.min.js"></script>
+
+    <!-- bootstrap4 JS-->
+    <script type="text/javascript" src="./js/bootstrap4/popper.js"></script>
+    <script src="./js/bootstrap4/bootstrap4.js"></script>
+
+    <!-- font awesome js -->
+    <script type="text/javascript" src="./js/fontawesome/fontawesome.js"></script>
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="mb-3">
+            <label for="exampleFormControlTextarea1" class="form-label">角色扮演提示詞:</label>
+            <textarea class="form-control defaultPrompt" id="prompt" rows="3" style="height: 200px;"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="exampleFormControlTextarea1" class="form-label"></label>
+            <textarea class="form-control" id="content" rows="3" style="height: 200px;"></textarea>
+        </div>
+
+        <div class="form-group col-4 col-md-2">
+            <label> </label><br>
+            <button id="query" type="button" class="btn btn-primary srch-btn w-100"><i class="fas fa-search"></i>
+                查 詢
+                <span class="spinner-border spinner-border-sm invisible" role="status" aria-hidden="true"></span>
+                <span class="sr-only">Loading...</span>
+            </button>
+        </div>
+
+        <div class="row">
+            <pre>
+                <div class="col gptRes"></div>
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        let defaultPrompt = `你是一名新聞校稿人員 
+請用繁體字指出新聞稿中的錯字或用詞錯誤
+你只需要回答以下格式即可 請勿提供更正後的新聞內容:
+用詞建議:
+1. "原來用詞" -> "更正後的用詞"
+2.
+
+新聞內容如下:`;
+        $('.defaultPrompt').text(defaultPrompt)
+        // 初始化設定
+        $('#query').click(async function () {
+            $(this).attr('disabled', 'disabled');
+            $('.spinner-border').removeClass('invisible')
+            $('.gptRes').text()
+            let prompt = $('#prompt').val()
+            let content = $('#content').val()
+            // 取得GA資料
+            let gptRes = await fetch('/input', {
+                method: 'POST',
+                body: JSON.stringify({
+                    "prompt": prompt,
+                    "content": content,
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }).then(res => res.json()).then(res => {
+                if (res.status == 403) {
+                    alert('登入時間逾時');
+                    window.location = "/"
+                } else {
+                    return res
+                }
+            })
+            if (gptRes.gptRes) {
+                console.log(gptRes);
+                $('.gptRes').text(gptRes.gptRes)
+                $('#query').removeAttr('disabled');
+                $('.spinner-border').addClass('invisible')
+            }
+        })
+    </script>
+</body>
+
+</html>
